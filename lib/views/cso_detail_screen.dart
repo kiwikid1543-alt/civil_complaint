@@ -63,6 +63,10 @@ class _CsoDetailScreenState extends ConsumerState<CsoDetailScreen> {
                   operatingHours:
                       status.locationInfo?.operatingHoursStr ?? '09:00 — 18:00',
                   csoNm: status.csoNm,
+                  isNightOperating: status.locationInfo?.isNightOperating ?? false,
+                  isWeekendOperating: status.locationInfo?.isWeekendOperating ?? false,
+                  nightOperatingExpln: status.locationInfo?.nightOperatingExpln,
+                  weekendOperatingExpln: status.locationInfo?.weekendOperatingExpln,
                 ),
                 const SizedBox(height: 16),
                 _buildTabs(),

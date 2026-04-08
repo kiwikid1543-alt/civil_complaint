@@ -247,11 +247,31 @@ class _CsoCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        cso.csoNm,
-                        style: AppTextStyles.bodyLarge.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              cso.csoNm,
+                              style: AppTextStyles.bodyLarge.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          if (cso.isNightOperating)
+                            _buildCompactBadge(
+                              Icons.dark_mode_rounded,
+                              const Color(0xFF5A67D8),
+                            ),
+                          if (cso.isWeekendOperating) ...[
+                            const SizedBox(width: 4),
+                            _buildCompactBadge(
+                              Icons.event_available_rounded,
+                              const Color(0xFFED8936),
+                            ),
+                          ],
+                        ],
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -320,5 +340,20 @@ class _CsoCard extends StatelessWidget {
   String _formatDistance(double km) {
     if (km < 1.0) return '${(km * 1000).round()}m';
     return '${km.toStringAsFixed(1)}km';
+  }
+
+  Widget _buildCompactBadge(IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(
+        icon,
+        size: 10,
+        color: color,
+      ),
+    );
   }
 }
