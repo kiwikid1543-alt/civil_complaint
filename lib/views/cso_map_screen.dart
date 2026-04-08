@@ -98,6 +98,9 @@ class _CsoMapScreenState extends ConsumerState<CsoMapScreen> {
                     });
                   }
                 },
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.all, // 핀치 줌, 더블 탭 줌 등 모든 제스처 활성화
+                ),
               ),
               children: [
                 TileLayer(
@@ -155,22 +158,48 @@ class _CsoMapScreenState extends ConsumerState<CsoMapScreen> {
               ],
             ),
             
-            // 내 위치로 이동하는 플로팅 액션 버튼
+            // 제어용 버튼 세트 (내 위치 위에 배치)
             Positioned(
               right: 20,
               bottom: _selectedStatus != null ? 220 : 30, // 카드가 열려있을 땐 카드 위로
               child: AnimatedPadding(
                 duration: const Duration(milliseconds: 200),
                 padding: EdgeInsets.only(bottom: _selectedStatus != null ? 20 : 0),
-                child: FloatingActionButton(
-                  backgroundColor: Colors.white,
-                  onPressed: _moveToCurrentLocation,
-                  child: _isLoadingLocation 
-                      ? const Padding(
-                          padding: EdgeInsets.all(12), 
-                          child: CircularProgressIndicator(strokeWidth: 3,)
-                        )
-                      : const Icon(Icons.my_location, color: AppTextStyles.primaryBlue),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 줌 인 (+) 버튼
+                    _buildControlButton(
+                      icon: Icons.add_rounded,
+                      onPressed: () {
+                        final nextZoom = (_mapController.camera.zoom + 1).clamp(3.0, 18.0);
+                        _mapController.move(_mapController.camera.center, nextZoom);
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    // 줌 아웃 (-) 버튼
+                    _buildControlButton(
+                      icon: Icons.remove_rounded,
+                      onPressed: () {
+                        final nextZoom = (_mapController.camera.zoom - 1).clamp(3.0, 18.0);
+                        _mapController.move(_mapController.camera.center, nextZoom);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    // 내 위치 버튼
+                    FloatingActionButton(
+                      heroTag: 'my_location',
+                      backgroundColor: Colors.white,
+                      onPressed: _fetchCurrentLocation, // 다시 위치를 가져오며 이동
+                      child: _isLoadingLocation 
+                          ? const SizedBox(
+                              width: 20, 
+                              height: 20, 
+                              child: CircularProgressIndicator(strokeWidth: 2, color: AppTextStyles.primaryBlue)
+                            )
+                          : const Icon(Icons.my_location, color: AppTextStyles.primaryBlue),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -441,5 +470,25 @@ class _CsoMapScreenState extends ConsumerState<CsoMapScreen> {
       case CongestionLevel.unknown:
         return const Color(0xFF94A3B8);
     }
+  }
+
+  Widget _buildControlButton({required IconData icon, required VoidCallback onPressed}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: IconButton(
+        icon: Icon(icon, color: const Color(0xFF4A5568)),
+        onPressed: onPressed,
+      ),
+    );
   }
 }

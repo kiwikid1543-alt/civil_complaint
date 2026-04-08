@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'views/cso_detail_screen.dart';
 import 'views/cso_list_screen.dart';
+import 'views/cso_map_screen.dart';
 import 'views/document_guide_screen.dart';
-import 'views/main_shell_screen.dart';
 import 'core/theme/app_text_styles.dart';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -33,47 +33,21 @@ void main() async {
 }
 
 final _router = GoRouter(
-  initialLocation: '/status',
+  initialLocation: '/',
   routes: [
-    StatefulShellRoute.indexedStack(
-      builder: (context, state, navigationShell) {
-        return MainShellScreen(navigationShell: navigationShell);
-      },
-      branches: [
-        /// 탭 1: 민원 현황 (리스트)
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/status',
-              builder: (context, state) => const CsoListScreen(),
-            ),
-          ],
-        ),
-        /// 탭 2: 혼잡도 분석 (광진구 중심 통계)
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/analytics',
-              builder: (context, state) => const CsoDetailScreen(
-                csoSn: 'CS0002', 
-                csoNm: '광진구청',
-              ),
-            ),
-          ],
-        ),
-        /// 탭 3: 준비물 가이드
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/guide',
-              builder: (context, state) => const DocumentGuideScreen(),
-            ),
-          ],
-        ),
-      ],
+    /// 첫 화면: 내 주변 관공서 목록
+    GoRoute(
+      path: '/',
+      builder: (context, state) => const CsoListScreen(),
     ),
 
-    /// 글로벌 상세 화면 (바텀바가 없는 전체 화면)
+    /// 지도 화면
+    GoRoute(
+      path: '/map',
+      builder: (context, state) => const CsoMapScreen(),
+    ),
+
+    /// 관공서 상세 화면: csoSn을 URL 파라미터로 받음
     GoRoute(
       path: '/detail/:csoSn',
       builder: (context, state) {
@@ -81,6 +55,12 @@ final _router = GoRouter(
         final csoNm = state.uri.queryParameters['csoNm'] ?? '민원실';
         return CsoDetailScreen(csoSn: csoSn, csoNm: csoNm);
       },
+    ),
+
+    /// 준비물 가이드 화면
+    GoRoute(
+      path: '/guide',
+      builder: (context, state) => const DocumentGuideScreen(),
     ),
   ],
 );

@@ -36,7 +36,20 @@ class _CsoDetailScreenState extends ConsumerState<CsoDetailScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFFBFDFF),
-      appBar: const CsoAppBar(title: '민원실 현황'),
+      appBar: CsoAppBar(
+        title: '민원실 현황',
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.checklist_rounded,
+              color: AppTextStyles.primaryBlue,
+            ),
+            tooltip: '준비물 안내',
+            onPressed: () => context.push('/guide'),
+          ),
+          const SizedBox(width: 4),
+        ],
+      ),
       body: csoStatusAsync.when(
         data: (status) => RefreshIndicator(
           color: AppTextStyles.primaryBlue,
