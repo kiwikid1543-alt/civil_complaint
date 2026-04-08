@@ -33,9 +33,9 @@ migrate_working_dir/
 /coverage/
 
 # Firebase / Secrets (DO NOT COMMIT SENSITIVE DATA)
-android/app/google-services.json
-ios/Runner/GoogleService-Info.plist
-lib/firebase_options.dart
+**/google-services.json
+**/GoogleService-Info.plist
+**/firebase_options.dart
 **/secrets.dart
 .env*
 secrets.dart
