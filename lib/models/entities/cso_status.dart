@@ -52,6 +52,35 @@ class CsoStatus {
     );
   }
 
+  /// 현재 실시간으로 업무가 진행 중인지 판별하는 게터
+  bool get isOperatingNow {
+    final now = DateTime.now();
+    final info = locationInfo;
+    
+    // 위치 정보가 없는 경우 기본적으로 데이터 노출 (데이터 유실 방지)
+    if (info == null) return true;
+
+    // 1. 기본 평일 운영 (09:00 ~ 18:00)
+    final isWeekday = now.weekday >= 1 && now.weekday <= 5;
+    final currentTimeValue = now.hour * 100 + now.minute; // HHmm 포맷으로 변환 (ex: 18:30 -> 1830)
+
+    if (isWeekday) {
+      // 야간 운영 지점의 경우 21:00까지 허용
+      final endTime = info.isNightOperating ? 2100 : 1800;
+      if (currentTimeValue >= 0900 && currentTimeValue < endTime) {
+        return true;
+      }
+    } else {
+      // 2. 주말 운영 지점 (토/일 중 운영하는 경우, 통상 09:00~13:00 혹은 18:00 기준)
+      // 정확한 상세 시간이 없으므로 주말 운영 플래그가 있으면 09:00 ~ 18:00 사이 노출 허용
+      if (info.isWeekendOperating && currentTimeValue >= 0900 && currentTimeValue < 1800) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   /// 더미 데이터를 생성하기 위한 팩토리 메서드 (임시)
   factory CsoStatus.mock() {
     return CsoStatus(

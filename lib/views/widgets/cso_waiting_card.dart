@@ -43,6 +43,7 @@ class CsoWaitingCard extends StatelessWidget {
   }
 
   Widget _buildTotalWaiting() {
+    final isOperating = status.isOperatingNow;
     return Column(
       children: [
         Text(
@@ -55,7 +56,7 @@ class CsoWaitingCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.baseline,
           textBaseline: TextBaseline.alphabetic,
           children: [
-            Text('${status.totalWaitingCount}', style: AppTextStyles.giant),
+            Text(isOperating ? '${status.totalWaitingCount}' : '0', style: AppTextStyles.giant),
             const SizedBox(width: 4),
             Text(
               '명',
@@ -68,6 +69,7 @@ class CsoWaitingCard extends StatelessWidget {
   }
 
   Widget _buildDetailInfo() {
+    final isOperating = status.isOperatingNow;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center, // 정보를 가운데로 모음
       children: [
@@ -77,7 +79,7 @@ class CsoWaitingCard extends StatelessWidget {
               Text('예상 대기 시간', style: AppTextStyles.caption),
               const SizedBox(height: 8),
               Text(
-                '약 ${status.expectedWaitTimeMinutes}분',
+                isOperating ? '약 ${status.expectedWaitTimeMinutes}분' : '약 0분',
                 style: AppTextStyles.heading1,
               ),
             ],
@@ -94,9 +96,11 @@ class CsoWaitingCard extends StatelessWidget {
               Text('전체 혼잡도', style: AppTextStyles.caption),
               const SizedBox(height: 8),
               Text(
-                status.congestionLevel.label,
+                isOperating ? status.congestionLevel.label : '업무 종료',
                 style: AppTextStyles.heading1.copyWith(
-                  color: _getCongestionColor(status.congestionLevel),
+                  color: isOperating
+                      ? _getCongestionColor(status.congestionLevel)
+                      : AppTextStyles.textLightGray,
                 ),
               ),
             ],
@@ -107,6 +111,7 @@ class CsoWaitingCard extends StatelessWidget {
   }
 
   Widget _buildOperatingInfobar() {
+    final isOperating = status.isOperatingNow;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
@@ -115,9 +120,11 @@ class CsoWaitingCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
-        status.congestionLevel == CongestionLevel.unknown
-            ? '현재 창구운영 정보를 확인할 수 없습니다'
-            : '현재 창구 ${status.operatingWindows}개 운영 중 (창구당 평균 ${status.avgWaitingPerWindow.toStringAsFixed(1)}명)',
+        !isOperating
+            ? '현재 운영 시간이 아닙니다'
+            : (status.congestionLevel == CongestionLevel.unknown
+                ? '현재 창구운영 정보를 확인할 수 없습니다'
+                : '현재 창구 ${status.operatingWindows}개 운영 중 (창구당 평균 ${status.avgWaitingPerWindow.toStringAsFixed(1)}명)'),
         textAlign: TextAlign.center,
         style: AppTextStyles.bodySmall.copyWith(
           color: AppTextStyles.textGray,
@@ -127,6 +134,7 @@ class CsoWaitingCard extends StatelessWidget {
   }
 
   Color _getCongestionColor(CongestionLevel level) {
+    if (!status.isOperatingNow) return AppTextStyles.textLightGray;
     switch (level) {
       case CongestionLevel.low:
         return const Color(0xFF27AE60);
