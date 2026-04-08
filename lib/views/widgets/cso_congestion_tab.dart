@@ -37,16 +37,18 @@ class _CsoCongestionTabState extends ConsumerState<CsoCongestionTab> {
   }
 
   Widget _buildContent(List<HourlyCongestion> hourlyData) {
+    // 18시 이후 데이터 필터링 (사용자 요청: 18시~20시 제외)
+    final filteredData = hourlyData.where((d) => d.hour < 18).toList();
     final int currentHour = DateTime.now().hour;
-    final bool isFallback = hourlyData.any((d) => d.isFallback);
+    final bool isFallback = filteredData.any((d) => d.isFallback);
 
     return Column(
       children: [
         _buildSummaryCard(),
         const SizedBox(height: 12),
-        _buildChartCard(currentHour, hourlyData, isFallback),
+        _buildChartCard(currentHour, filteredData, isFallback),
         const SizedBox(height: 12),
-        _buildBestTimeCard(hourlyData),
+        _buildBestTimeCard(filteredData),
       ],
     );
   }
@@ -191,7 +193,12 @@ class _CsoCongestionTabState extends ConsumerState<CsoCongestionTab> {
                   touchCallback: (event, response) {
                     setState(() {
                       if (response?.spot != null && event is! FlPointerExitEvent) {
-                        _touchedIndex = response!.spot!.touchedBarGroupIndex;
+                        final index = response!.spot!.touchedBarGroupIndex;
+                        if (index < hourlyData.length) {
+                          _touchedIndex = index;
+                        } else {
+                          _touchedIndex = null;
+                        }
                       } else {
                         _touchedIndex = null;
                       }
@@ -200,6 +207,7 @@ class _CsoCongestionTabState extends ConsumerState<CsoCongestionTab> {
                   touchTooltipData: BarTouchTooltipData(
                     getTooltipColor: (_) => AppTextStyles.primaryBlue,
                     getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                      if (groupIndex >= hourlyData.length) return null;
                       final data = hourlyData[groupIndex];
                       final percent = (data.congestionRate * 100).round();
                       return BarTooltipItem(
@@ -225,22 +233,37 @@ class _CsoCongestionTabState extends ConsumerState<CsoCongestionTab> {
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
+                      interval: 1,
                       getTitlesWidget: (value, meta) {
                         final index = value.toInt();
-                        if (index < 0 || index >= hourlyData.length) {
+                        String text = '';
+                        bool isBold = false;
+
+                        if (index >= 0 && index < hourlyData.length) {
+                          final hour = hourlyData[index].hour;
+                          text = '$hour';
+                          isBold = hour == currentHour;
+                        } else if (index == hourlyData.length) {
+                          text = '18';
+                        } else {
                           return const SizedBox.shrink();
                         }
-                        final hour = hourlyData[index].hour;
-                        final isCurrent = hour == currentHour;
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 6),
-                          child: Text(
-                            '$hour',
-                            style: AppTextStyles.micro.copyWith(
-                              fontWeight: isCurrent ? FontWeight.w900 : FontWeight.w500,
-                              color: isCurrent
-                                  ? AppTextStyles.primaryBlue
-                                  : AppTextStyles.textLightGray,
+
+                        // 가독성을 위해 숫자를 막대 기둥의 좌측 경계(꼭지점)로 쉬프트 (바 너비 22의 절반인 11픽셀 정도이동)
+                        return SideTitleWidget(
+                          meta: meta,
+                          space: 8,
+                          child: Transform.translate(
+                            offset: const Offset(-11, 0),
+                            child: Text(
+                              text,
+                              style: AppTextStyles.micro.copyWith(
+                                fontSize: 10,
+                                fontWeight: isBold ? FontWeight.w900 : FontWeight.w500,
+                                color: isBold
+                                    ? AppTextStyles.primaryBlue
+                                    : AppTextStyles.textLightGray,
+                              ),
                             ),
                           ),
                         );
@@ -259,7 +282,20 @@ class _CsoCongestionTabState extends ConsumerState<CsoCongestionTab> {
                   ),
                 ),
                 borderData: FlBorderData(show: false),
-                barGroups: List.generate(hourlyData.length, (index) {
+                barGroups: List.generate(hourlyData.length + 1, (index) {
+                  if (index == hourlyData.length) {
+                    return BarChartGroupData(
+                      x: index,
+                      barRods: [
+                        BarChartRodData(
+                          toY: 0,
+                          color: Colors.transparent,
+                          width: 22,
+                        ),
+                      ],
+                    );
+                  }
+
                   final data = hourlyData[index];
                   final isCurrent = data.hour == currentHour;
                   final isTouched = _touchedIndex == index;
@@ -282,7 +318,6 @@ class _CsoCongestionTabState extends ConsumerState<CsoCongestionTab> {
                         ),
                       ),
                     ],
-                    // 현재 시간 강조
                     showingTooltipIndicators: isCurrent ? [0] : [],
                   );
                 }),
