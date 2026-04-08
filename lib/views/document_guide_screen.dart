@@ -87,14 +87,14 @@ class _DocumentGuideScreenState extends State<DocumentGuideScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
             child: Row(
               children: [
-                IconButton(
-                  icon: const Icon(
-                    Icons.arrow_back_ios_new_rounded,
-                    size: 20,
-                    color: AppTextStyles.primaryBlue,
+                const Opacity(
+                  opacity: 0,
+                  child: IconButton(
+                    icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                    onPressed: null,
                   ),
-                  onPressed: () => Navigator.of(context).pop(),
                 ),
+
                 Expanded(
                   child: Text(
                     '준비물 가이드',
