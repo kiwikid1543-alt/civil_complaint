@@ -63,10 +63,13 @@ class _CsoDetailScreenState extends ConsumerState<CsoDetailScreen> {
                   operatingHours:
                       status.locationInfo?.operatingHoursStr ?? '09:00 — 18:00',
                   csoNm: status.csoNm,
-                  isNightOperating: status.locationInfo?.isNightOperating ?? false,
-                  isWeekendOperating: status.locationInfo?.isWeekendOperating ?? false,
+                  isNightOperating:
+                      status.locationInfo?.isNightOperating ?? false,
+                  isWeekendOperating:
+                      status.locationInfo?.isWeekendOperating ?? false,
                   nightOperatingExpln: status.locationInfo?.nightOperatingExpln,
-                  weekendOperatingExpln: status.locationInfo?.weekendOperatingExpln,
+                  weekendOperatingExpln:
+                      status.locationInfo?.weekendOperatingExpln,
                 ),
                 const SizedBox(height: 16),
                 _buildTabs(),
@@ -140,10 +143,9 @@ class _CsoDetailScreenState extends ConsumerState<CsoDetailScreen> {
         ),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _buildTabItem('대기 현황', index: 0),
-          _buildTabItem('혼잡도', index: 1),
+          Expanded(child: _buildTabItem('대기 현황', index: 0)),
+          Expanded(child: _buildTabItem('혼잡도', index: 1)),
         ],
       ),
     );
@@ -155,7 +157,8 @@ class _CsoDetailScreenState extends ConsumerState<CsoDetailScreen> {
       onTap: () => setState(() => _selectedTab = index),
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
           border: isSelected
               ? const Border(

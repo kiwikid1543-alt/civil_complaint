@@ -43,8 +43,8 @@ class CongestionLoggerService {
       return; 
     }
 
-    // 대상 CSO Sn: CS0005(서초구청), CS0041(부산남구), CS0006(광진구청)
-    final targets = ['CS0005', 'CS0041', 'CS0006'];
+    // 대상 CSO Sn: CS0005(서초구청), CS0041(부산남구), CS0002(광진구청)
+    final targets = ['CS0005', 'CS0041', 'CS0002'];
     final repository = _ref.read(csoRepositoryProvider);
 
     for (var csoSn in targets) {
