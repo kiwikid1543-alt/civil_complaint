@@ -340,14 +340,35 @@ class _CsoCongestionTabState extends ConsumerState<CsoCongestionTab> {
     );
   }
 
-  /// 방문 최적 시간 추천 카드
+  /// 방문 최적 시간 추천 카드 (2시간 골든 윈도우 분석)
   Widget _buildBestTimeCard(List<HourlyCongestion> hourlyData) {
-    // 운영 시간 내 가장 낮은 혼잡도 시간대 탐색
-    final best = hourlyData.reduce(
-      (a, b) => a.congestionRate < b.congestionRate ? a : b,
-    );
-    final amPm = best.hour < 12 ? '오전' : '오후';
-    final displayHour = best.hour > 12 ? best.hour - 12 : best.hour;
+    if (hourlyData.length < 2) return const SizedBox.shrink();
+
+    // 2시간 연속 구간 중 평균 혼잡도가 가장 낮은 지점 찾기
+    int bestStartIndex = 0;
+    double minAvgRate = 2.0;
+
+    for (int i = 0; i < hourlyData.length - 1; i++) {
+       // 점심시간(12시~13시) 혹은 그 주변은 실무적으로 혼잡하므로 가중치 부여 (값 0.2 페널티)
+      final hour = hourlyData[i].hour;
+      final penalty = (hour >= 11 && hour <= 13) ? 0.25 : 0.0;
+      
+      final avgRate = (hourlyData[i].congestionRate + hourlyData[i + 1].congestionRate) / 2 + penalty;
+      
+      if (avgRate < minAvgRate) {
+        minAvgRate = avgRate;
+        bestStartIndex = i;
+      }
+    }
+
+    final start = hourlyData[bestStartIndex];
+    final endHour = start.hour + 2;
+
+    String formatHour(int h) {
+      final amPm = h < 12 ? '오전' : '오후';
+      final displayH = h > 12 ? h - 12 : (h == 0 ? 12 : h);
+      return '$amPm $displayH:00';
+    }
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -388,7 +409,7 @@ class _CsoCongestionTabState extends ConsumerState<CsoCongestionTab> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '$amPm $displayHour시 ~ ${displayHour + 1}시 사이에 방문하시면 가장 빠르게 업무를 보실 수 있습니다.',
+                  '${formatHour(start.hour)} - ${formatHour(endHour)} 사이에 방문하시면 가장 빠르게 업무를 보실 수 있습니다.',
                   style: AppTextStyles.bodySmall.copyWith(
                     color: AppTextStyles.textBlack,
                   ),
